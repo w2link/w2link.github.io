@@ -1,0 +1,97 @@
+html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Нажми</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #0a0a0a;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #photo {
+            max-width: 90vw;
+            max-height: 65vh;
+            border-radius: 18px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+            transition: transform 0.1s;
+        }
+        #photo:active { transform: scale(0.96); }
+        #btn {
+            margin-top: 28px;
+            padding: 20px 56px;
+            font-size: 22px;
+            font-weight: 700;
+            background: #0066ff;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,102,255,0.35);
+            transition: transform 0.1s;
+        }
+        #btn:active { transform: scale(0.95); }
+        #btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+    <img id="photo" src="photo.png" alt="Нажми">
+    <button id="btn">НАЖМИ</button>
+
+    <audio id="audio" src="sound.mp3" preload="auto"></audio>
+
+    <script>
+        const btn = document.getElementById('btn');
+        const photo = document.getElementById('photo');
+        const audio = document.getElementById('audio');
+        let played = false;
+
+        function triggerSound() {
+            if (played) return;
+            played = true;
+
+            audio.volume = 1.0;
+            audio.loop = true; // Зацикливание
+            audio.play().catch(() => {});
+
+            btn.disabled = true;
+            btn.textContent = 'tg: @w2link';
+
+            // MediaSession API для фонового воспроизведения
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'Звук',
+                    artist: 'Telegram',
+                    album: 'Шутка',
+                    artwork: [{ src: 'photo.png', sizes: '512x512', type: 'image/png' }]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => audio.play());
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                navigator.mediaSession.playbackState = 'playing';
+            }
+        }
+
+        btn.addEventListener('click', triggerSound);
+        photo.addEventListener('click', triggerSound);
+
+        // Синхронизация состояния для системного плеера
+        audio.addEventListener('play', () => {
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+        });
+        audio.addEventListener('pause', () => {
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+        });
+    </script>
+</body>
+</html>
